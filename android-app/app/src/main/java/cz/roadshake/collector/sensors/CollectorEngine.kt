@@ -25,14 +25,14 @@ class CollectorEngine(
     private val onTick: (TelemetryRecord) -> Unit
 ) {
     private val logger = CsvLogger(context)
-    private val scope = CoroutineScope(Dispatchers.Default)
+    private val scope = CoroutineScope(Dispatchers.IO)
     private var job: Job? = null
 
     fun start() {
         if (job != null) return
-        logger.initializeFileIfNeeded()
 
         job = scope.launch {
+            logger.initializeFileIfNeeded()
             while (isActive) {
                 val sample = fakeRecord()
                 logger.append(sample)

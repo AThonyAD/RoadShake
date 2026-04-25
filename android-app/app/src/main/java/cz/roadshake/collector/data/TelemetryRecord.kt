@@ -19,7 +19,7 @@ fun TelemetryRecord.toCsvRow(): String = listOf(
     speedKmh,
     accRms,
     gyroRms,
-    phoneModel,
-    mountPosition,
-    roadContext
+    phoneModel.replace(",", "_"),
+    mountPosition.replace(",", "_"),
+    roadContext.replace(",", "_")
 ).joinToString(",")

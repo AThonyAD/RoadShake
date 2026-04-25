@@ -18,8 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import android.content.ActivityNotFoundException
+import android.widget.Toast
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cz.roadshake.collector.sensors.CollectorEngine
 import cz.roadshake.collector.ui.CollectorViewModel
@@ -39,7 +42,7 @@ class MainActivity : ComponentActivity() {
             val vm: CollectorViewModel = viewModel()
             engine = engine ?: CollectorEngine(applicationContext, { vm.currentRoadContext.spoken }, vm::onNewRecord)
             val latest by remember { androidx.compose.runtime.derivedStateOf { vm.latestRecord } }
-            val speechMode = remember { mutableStateOf("context") }
+            val speechMode = rememberSaveable { mutableStateOf("context") }
 
             val speechLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
@@ -99,7 +102,11 @@ class MainActivity : ComponentActivity() {
                     Button(onClick = {
                         speechMode.value = "context"
                         val intent = voiceAssistant?.speechIntent("Řekněte typ cesty") ?: return@Button
-                        speechLauncher.launch(intent)
+                        try {
+                            speechLauncher.launch(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(applicationContext, "Rozpoznávání hlasu není dostupné", Toast.LENGTH_SHORT).show()
+                        }
                     }) {
                         Text("Hlas: typ cesty")
                     }
@@ -108,7 +115,11 @@ class MainActivity : ComponentActivity() {
                         speechMode.value = "confirm"
                         voiceAssistant?.speak("Byla to překážka? Odpovězte ano nebo ne.")
                         val intent = voiceAssistant?.speechIntent("Odpovězte ANO nebo NE") ?: return@Button
-                        speechLauncher.launch(intent)
+                        try {
+                            speechLauncher.launch(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(applicationContext, "Rozpoznávání hlasu není dostupné", Toast.LENGTH_SHORT).show()
+                        }
                     }) {
                         Text("Hlas: potvrzení ANO/NE")
                     }
